@@ -1,0 +1,21 @@
+/Debug/
+# 1. Build and Compilation Artifacts (Never commit these)
+Debug/
+Release/
+*.o
+*.su
+*.d
+*.elf
+*.bin
+*.hex
+*.map
+*.list
+
+# 2. IDE-Specific Settings & Analytics
+.settings/
+.analytics
+.gdbinit
+
+# 3. System / OS Junk
+Thumbs.db
+.DS_Store
