@@ -180,6 +180,13 @@ int main(void)
 		  humidity_valid = 0;
 		  printf("Humidity CRC failed\r\n");
 	  }
+
+	  if (temp_valid == 1 && humidity_valid == 1){
+		  printf("Temperature: %.1f F\r\n",temp_f);
+		  printf("Humidity: %.1f %%\r\n", humidity_f);
+	  }
+
+	  HAL_Delay(100);
   }
 
     /* USER CODE END WHILE */
