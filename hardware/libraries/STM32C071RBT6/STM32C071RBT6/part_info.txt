@@ -1,0 +1,9 @@
+Manufacturer=STMicroelectronics
+PartNumber=STM32C071RBT6
+PartCategory=Integrated Circuit
+PackageCategory=Quad Flat Packages
+PinCount=64
+Version=3.1
+Released=2024-09-19 03:56:13
+Downloaded=2026-10-07 22:10:00
+3D=Y
