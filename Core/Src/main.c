@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "sht41.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,7 +32,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SHT41_ADDR (0x44U << 1)
 
 /* USER CODE END PD */
 
@@ -48,12 +47,7 @@ COM_InitTypeDef BspCOMInit;
 I2C_HandleTypeDef hi2c1;
 
 /* USER CODE BEGIN PV */
-
-uint8_t TX_Buffer[1] = {0xFD}; //data to send 0xFD is high precision mode list of commands can be found: https://cdn-shop.adafruit.com/product-files/5776/Datasheet_SHT4x.pdf : in section 4.5
 uint8_t RX_Buffer[6];
-int temp_valid;
-int humidity_valid;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -61,9 +55,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
-static float calculate_temp(uint16_t raw_temp, int mode);
-static float calculate_humidity(uint16_t raw_humidity);
-static uint8_t crc_calc(uint8_t *data, uint8_t length);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -121,72 +113,30 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //I2C  for 0x44
+	  //I2C address for SHT41 is 0x44
 
-	  HAL_StatusTypeDef receive;
-	  HAL_StatusTypeDef transmit;
+	  HAL_StatusTypeDef status;
 
-	  float temp_f;
-	  float humidity_f;
 
-	  transmit = HAL_I2C_Master_Transmit(&hi2c1,SHT41_ADDR, TX_Buffer, 1, HAL_MAX_DELAY); //transmit the data to the sensor
+	  float temp;
+	  float humidity;
 
-	  if (transmit != HAL_OK){
-		  temp_valid = 0;
-		  humidity_valid = 0;
+	  status = SHT41_I2C(&hi2c1, RX_Buffer);
 
-		  printf("Transition failed\r\n");
-
-		  HAL_Delay(100);
-		  continue;
+	  if (status != HAL_OK){
+		  printf("I2C communication failed: %d\r\n",(int)status);
 	  }
 
-	  HAL_Delay(100); //delay
-
-	  receive = HAL_I2C_Master_Receive(&hi2c1, SHT41_ADDR, (uint8_t *)RX_Buffer, 6, HAL_MAX_DELAY); //read the data from the sensor
-
-	  if (receive != HAL_OK){
-		  temp_valid = 0;
-		  humidity_valid = 0;
-
-		  printf("Receiving failed\r\n");
-		  HAL_Delay(100);
-		  continue;
-	  }
-
-	  uint16_t raw_temp = ((uint16_t)RX_Buffer[0] << 8) | RX_Buffer[1]; //temp shift left 8 to make it MSB than add LSB by oring it
-	  uint16_t raw_humidity = ((uint16_t)RX_Buffer[3] << 8) | RX_Buffer[4]; //humidity shift left 8 to make it MSB than add LSB by oring it
-
-
-
-	  uint8_t crc_temp = crc_calc(&RX_Buffer[0],2);
-
-	  uint8_t crc_humidity = crc_calc(&RX_Buffer[3],2);
-
-	  if (crc_temp == RX_Buffer[2]){
-		  temp_valid = 1;
-		  temp_f = calculate_temp(raw_temp, 1);
+	  else if (!SHT41_Decode(RX_Buffer,SHT41_FAHRENHEIT,&temp,&humidity)){
+		  printf("SHT41 decode failed (CRC or invalid arguments)\r\n");
 	  }
 	  else{
-		  temp_valid = 0;
-		  printf("Temperature CRC failed\r\n");
+		  printf("Temperature: %.2f F\r\n",  temp);
+		  printf("Humidity: %.2f %%\r\n", humidity);
 	  }
 
-	  if (crc_humidity == RX_Buffer[5]){
-		  humidity_valid = 1;
-		  humidity_f = calculate_humidity(raw_humidity);
-	  }
-	  else{
-		  humidity_valid = 0;
-		  printf("Humidity CRC failed\r\n");
-	  }
+	  HAL_Delay(1000);
 
-	  if (temp_valid == 1 && humidity_valid == 1){
-		  printf("Temperature: %.1f F\r\n",temp_f);
-		  printf("Humidity: %.1f %%\r\n", humidity_f);
-	  }
-
-	  HAL_Delay(100);
   }
 
     /* USER CODE END WHILE */
@@ -306,56 +256,6 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-static float calculate_temp(uint16_t raw_temp, int mode){ //https://cdn-shop.adafruit.com/product-files/5776/Datasheet_SHT4x.pdf : section 4.6 // mode is 0 for Celsius and 1 for Fahrenheit.
-	float Ti = (float)raw_temp/ 65535.0f;
-
-	//Celsius
-	if (mode == 0){
-	float T = -45.0f + (175 * Ti);
-	return T;
-	}
-
-	//Fahrenheit
-	if (mode == 1){
-		float T = -49.0 + (315.0f * Ti);
-		return T;
-	}
-
-	return 0.0f;
-}
-
-	static float calculate_humidity(uint16_t raw_humidity){
-		float Hi = (float)raw_humidity/65535.0f;
-
-		float H = -6.0f + (125.0f * Hi);
-
-		return H;
-
-	}
-
-	static uint8_t crc_calc(uint8_t *data, uint8_t length){ //length in bytes https://cdn-shop.adafruit.com/product-files/5776/Datasheet_SHT4x.pdf section 4.4 and 4.3 are useful //CRC checks are modulo 2 division from what i understand doing research
-
-		uint8_t crc = 0xFF;
-
-		for(int i = 0; i < length; i++){
-
-			crc  ^= data[i];
-
-			for(uint8_t j = 0; j < 8; j++){ //8bits is a size of a byte thats why use less than 8
-
-				if(crc & 0x80){
-					crc = (crc << 1) ^ 0x31;
-				}
-				else{
-					crc = (crc << 1);
-				}
-
-			}
-		}
-		crc ^= 0x00;
-
-		return crc;
-	}
 
 /* USER CODE END 4 */
 
