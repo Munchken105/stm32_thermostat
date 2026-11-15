@@ -1,0 +1,4 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "Library") (type "KiCad") (uri "/home/tomer/projects/stm32-project/stm32_thermostat/stm32_thermostat/hardware/libraries/LIB_1301.9318.24/1301.9318.24/KiCad/Library.pretty") (options "") (descr ""))
+)

@@ -1,0 +1,18 @@
+.1301.9318.24 :1 ;LSH 8.0mm 3.3mm blister standard
+"13019319"
+*STM S
+*NGS
+*PLB 1="COM_1" 2="COM_2" 3="NO_1" 4="NO_2"
+*MXP 4
+*DFN 1301.9318.24
+~!Manufacturer_Name (SCHURTER)
+~!Manufacturer_Part_Number (1301.9318.24)
+~!Mouser Part Number (693-1301.9318.24)
+~!Link Mouser Price/Stock (https://www.mouser.co.uk/ProductDetail/Schurter/1301.9318.24?qs=Qh7l3Ft4H1mleOwZJxyWyA%3D%3D)
+~!Arrow Part Number (1301.9318.24)
+~!Link Arrow Price/Stock (https://www.arrow.com/en/products/1301.9318.24/schurter)
+~!Link Datasheet (https://www.schurter.com/en/datasheet/6x6_mm_tact_switches)
+~!Height (9mm)
+~!3D_Model (1301.9318.24)
+"1301.9318.24"
+1.1!U 2.1!U 3.1!U 4.1!U 

@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP 1301.9318.24
+D LSH 8.0mm 3.3mm blister standard
+K
+F https://www.schurter.com/en/datasheet/6x6_mm_tact_switches
+$ENDCMP
+#
+#End Doc Library
